@@ -20,10 +20,10 @@ import axios from "axios";
 
   // Update BorrowData
    export const updateBorrow = createAsyncThunk("borrowbook/updateBorrow",
-    async ({ id, BookReturnDate, ActualBookReturnDate,Status,Fine, }) => {
+    async ({ id, BookReturnDate,BookCount,ReturnBookCount, ActualBookReturnDate,Status,Fine, }) => {
        const res = await axios.put(
         `/api/borrowbook/${id}`,
-        { BookReturnDate,ActualBookReturnDate,Status,Fine});
+        { BookReturnDate,BookCount,ReturnBookCount,ActualBookReturnDate,Status,Fine});
        console.log("Update Response....:", res.data);
        return res.data.data;
     }

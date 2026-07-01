@@ -14,6 +14,10 @@ export async function POST(req) {
     console.log(data);
     const BookTitle = data.get("BookTitle");
     const AuthorName = data.get("AuthorName");
+    const Publisher = data.get("Publisher");
+    const PublicationYear = data.get("PublicationYear");
+    const Edition = data.get("Edition");
+    const Language = data.get("Language");
     const Category = data.get("Category");
     const Quantity = data.get("Quantity");
     const Status = data.get("Status");
@@ -44,7 +48,7 @@ export async function POST(req) {
 
      const newBook = await Book.create({
           BookTitle,
-          AuthorName,
+          AuthorName,Publisher,PublicationYear,Edition,Language,
           Category,
           Quantity,
           Status,

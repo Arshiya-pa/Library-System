@@ -10,35 +10,38 @@ import autoTable from "jspdf-autotable";
 import Swal from "sweetalert2";
 
 const UsersList = () => {
-    const dispatch = useDispatch();
-    const router = useRouter();
+      const dispatch = useDispatch();
+      const router = useRouter();
 
-   const users = useSelector(
-    (state) => state.register.register || []
-   );
-    const [search, setSearch] = useState("");  
-    const [editId, setEditId] = useState(null);
-    const [editData, setEditData] = useState({});
-
-   const [currentPage, setCurrentPage] = useState(1);
-   const usersPerPage = 5;
-
-   const [errors, setErrors] = useState({});
-    useEffect(() => {
-    dispatch(getUser());
-   }, [dispatch]);
-
-   const handleEdit = (item) => {
-    setEditId(item._id);
-    setEditData(item);
-   };
-
-   const handleChange = (e) => {
-    setEditData({
-      ...editData,
-      [e.target.name]: e.target.value,
-    });
-   };
+          const users = useSelector(
+           (state) => state.register.register || []
+          );
+           const [search, setSearch] = useState("");  
+           const [editId, setEditId] = useState(null);
+           const [editData, setEditData] = useState({});
+       
+          const [currentPage, setCurrentPage] = useState(1);
+          const usersPerPage = 5;
+       
+          const [errors, setErrors] = useState({});
+           useEffect(() => {
+           dispatch(getUser());
+          }, [dispatch]);
+       
+         const handleEdit = (item) => {
+            setEditId(item._id);
+            setEditData({
+             ...item,
+             MembershipPlan: item.MembershipPlan,
+             });
+           };
+       
+       const handleChange = (e) => {
+         setEditData({
+           ...editData,
+           [e.target.name]: e.target.value,
+         });
+       };
 
         const validate = (name, value) => {
              let error = "";
@@ -75,17 +78,7 @@ const UsersList = () => {
                  error = "Phone number must be 10 digits";
                }
              }
-           
-             if (name === "Password") {
-               if (!value) {
-                 error = "Password is required";
-               } else if (
-                 !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$/.test(value)
-               ) {
-                 error =
-                   "Password must contain uppercase, lowercase, number, special character and minimum 8 characters";
-               }
-             }
+             
            
              if (name === "Address") {
                if (!value.trim()) {
@@ -101,6 +94,7 @@ const UsersList = () => {
 
       const filteredUsers = users?.filter((user) =>
          user.FullName?.toLowerCase().includes(search.toLowerCase()) ||
+         user.MembershipPlan?.toLowerCase().includes(search.toLowerCase()) ||
          user.Email?.toLowerCase().includes(search.toLowerCase()) ||
          user.Address?.toLowerCase().includes(search.toLowerCase())
       );
@@ -143,6 +137,7 @@ const UsersList = () => {
            item.FullName || "",
            item.Email || "",
            item.Phone || "",
+           item.MembershipPlan || "",
            item.Address || "",
          ]);
    
@@ -249,6 +244,7 @@ const UsersList = () => {
               <th>FullName</th>
               <th>Email</th>
               <th>Phone</th>
+              <th>MembershipPlan</th>
               <th>Address</th>
               <th>Action</th>
             </tr>
@@ -338,6 +334,21 @@ const UsersList = () => {
              item.Phone
            )}
          </td>
+
+             <td>
+               {editId === item._id ? (
+                 <input
+                   type="text"
+                   name="MembershipPlan"
+                   value={editData.MembershipPlan || ""}
+                   readOnly
+                   className="border p-2 rounded bg-gray-100 cursor-not-allowed"
+                 />
+               ) : (
+                 item.MembershipPlan
+               )}
+             </td>
+             
            <td>
             {editId === item._id ? (
              <>
@@ -402,7 +413,7 @@ const UsersList = () => {
          )}
          </tbody>
         </table>
-                <div className="flex justify-center items-center gap-4 mt-6">
+        <div className="flex justify-center items-center gap-4 mt-6">
           <button
             onClick={prevPage}
             disabled={currentPage === 1}

@@ -41,6 +41,18 @@ const registrationSchema = new mongoose.Schema({
         trim: true,
         minlength: [5, "Address must be at least 5 characters"],
       },
+       
+         MembershipPlan: {
+         type: String,
+         required: [true, "Membership Plan is required"],
+         trim: true,
+       },
+       
+       MembershipFee: {
+         type: Number,
+         required: [true, "Membership Fee is required"],
+         min: [0, "Membership Fee cannot be negative"],
+       },
     })
    const Register = mongoose.models.Register || mongoose.model("Register",registrationSchema)
    export default Register;

@@ -7,20 +7,32 @@ import { NextResponse } from "next/server";
  export async function POST(request){
     try {
          await connectionDb()
-         const{UserId,FullName,Email,Phone,Address} = await request.json()
+         const{UserId,FullName,Email,Phone,Address,MembershipPlan,MembershipFee} = await request.json()
          const register = await Register.findOne({UserId})
 
-         if(register){
-            return NextResponse.json({
-                message: "This ID is already exist"
-            })
-         }
-           const newRegister = new Register({
+            if (register) {
+              return NextResponse.json(
+                { success: false,
+                  message: "This ID already exists",
+                },
+                { status: 400 }
+              );
+            }
+            const existingUser = await Register.findOne({ Email }); 
+            if (existingUser) {
+              return NextResponse.json(
+                { success: false,
+                  message: "Email already exists",
+                },
+                { status: 400 }
+              );
+            }
+            const newRegister = new Register({
               UserId,
               FullName,
               Email,
               Phone,
-              Address,})
+              Address,MembershipPlan,MembershipFee,})
              await newRegister.save()
              return NextResponse.json({message:"New Registration Completed", data:newRegister,success: true},{status:201})  
         

@@ -4,6 +4,7 @@ import bookReducer from "../redux/slices/bookSlice"
 import authReducer from "../redux/slices/authSlice"
 import registerReducer from "../redux/slices/registerSlice"
 import borrowReducer from "../redux/slices/borrowSlice"
+import fineReducer from "../redux/slices/fineSlice"
 
 export const store = configureStore({
   reducer: {
@@ -11,5 +12,6 @@ export const store = configureStore({
     auth:authReducer,
     register:registerReducer,
     borrowbook:borrowReducer,
+    fineData:fineReducer,
   },
 });

@@ -7,14 +7,16 @@ import { NextResponse } from "next/server";
  export async function POST(request){
     try {
          await connectionDb()
-         const{UserId,FullName,Email,BookTitle,BookCount,BookIssueDate,BookReturnDate,ActualBookReturnDate,Status,Fine} = await request.json()
+           const{UserId,FullName,MembershipPlan,Email,BookTitle,BookCount,ReturnBookCount,BookIssueDate,BookReturnDate,ActualBookReturnDate,Status,Fine} = await request.json()
        
             const newBorrow = new Borrow({
               UserId,
               FullName,
+              MembershipPlan,
               Email,
               BookTitle,
               BookCount,
+              ReturnBookCount,
               BookIssueDate,
               BookReturnDate,ActualBookReturnDate,
               Status,Fine})

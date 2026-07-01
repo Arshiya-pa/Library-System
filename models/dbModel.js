@@ -14,10 +14,31 @@ const bookSchema = new mongoose.Schema({
     trim: true,
    },
 
-   Category: {
+    Publisher: {
     type: String,
-    required: [true, "Category is required"],
-    enum: {
+    required: [true, "Publisher is required"],
+    trim: true,
+    },
+
+    PublicationYear: {
+     type: Number,
+     required: [true, "Publication Year is required"],
+    },
+
+     Edition: {
+     type: String,
+     required: [true, "Edition is required"],
+    },
+
+     Language: {
+     type: String,
+     required: [true, "Language is required"],
+    },
+
+    Category: {
+     type: String,
+     required: [true, "Category is required"],
+     enum: {
       values: ["Self Help", "Finance", "Fiction", "Spirituality"],
       message: "Invalid Category",
     },

@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 const borrowSchema = new mongoose.Schema({
      UserId: String,
      FullName: String,
+     MembershipPlan: String,
      Email: String,  
      BookTitle: String,
      
@@ -10,6 +11,11 @@ const borrowSchema = new mongoose.Schema({
      type: Number,
      required: [true, "BookCount is required"],
       min: [1, "BookCount cannot be negative"],
+     },
+     
+     ReturnBookCount: {
+     type: Number,
+     default: 0,
      },
 
      BookIssueDate:Date,

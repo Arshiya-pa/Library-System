@@ -32,6 +32,7 @@ import Swal from "sweetalert2";
          book.BookTitle?.toLowerCase().includes(search.toLowerCase()) ||
          book.AuthorName?.toLowerCase().includes(search.toLowerCase()) ||
          book.Category?.toLowerCase().includes(search.toLowerCase()) ||
+        book.Language?.toLowerCase().includes(search.toLowerCase()) ||
          book.Status?.toLowerCase().includes(search.toLowerCase())
         );
           const indexOfLastBook = currentPage * booksPerPage;
@@ -66,7 +67,12 @@ import Swal from "sweetalert2";
                      "Name must contain only letters and be at least 3 characters";
                  }
                }
-             
+                if (name === "Language") {
+                 if (!value.trim()) {
+                   error = "Language is required";
+                 }
+               }
+                     
                if (name === "Category") {
                  if (!value.trim()) {
                    error = "Category is required";
@@ -128,6 +134,7 @@ import Swal from "sweetalert2";
       const tableColumn = [
         "Title",
         "Author",
+        "Language",
         "Category",
         "Quantity",
         "Status",
@@ -136,6 +143,7 @@ import Swal from "sweetalert2";
       const tableRows = filteredBooks.map((book) => [
         book.BookTitle || "",
         book.AuthorName || "",
+        book.Language || "",
         book.Category || "",
         book.Quantity || "",
         book.Status || "",
@@ -256,6 +264,7 @@ import Swal from "sweetalert2";
                   <th className="py-3">Book</th>
                   <th>Title</th>
                   <th>Author</th>
+                  <th>Language</th>
                   <th>Category</th>
                   <th>Quantity</th>
                   <th>Status</th>
@@ -336,6 +345,37 @@ import Swal from "sweetalert2";
                     book.AuthorName
                   )}
                 </td>
+
+                <td>
+                 {editId === book._id ? (
+                   <>
+                     <select
+                       name="Language"
+                       value={editData.Language || ""}
+                       onChange={(e) => {
+                         handleChange(e);
+                         validate(e.target.name, e.target.value);
+                       }}
+                       className={`border p-2 rounded ${
+                         errors.Language ? "border-red-500" : ""
+                       }`}
+                       >
+                       <option value="">Select Language</option>
+                         <option value="Malayalam">Malayalam</option>
+                         <option value="English">English</option>
+                         <option value="Hindi">Hindi</option>
+                     </select>
+               
+                     {errors.Language && (
+                       <p className="text-red-500 text-xs mt-1">
+                         {errors.Language}
+                       </p>
+                     )}
+                   </>
+                 ) : (
+                   book.Language
+                 )}
+            </td>
                 
               <td>
                  {editId === book._id ? (
@@ -352,13 +392,12 @@ import Swal from "sweetalert2";
                        }`}
                        >
                        <option value="">Select Category</option>
-               
                        <option value="Self Help">Self Help</option>
-               
                        <option value="Finance">Finance</option>
-               
-                       <option value="Fiction">Fiction</option>
-               
+                        <option value="Fiction">Fiction</option>
+                        <option value="Romance">Romance</option>
+                        <option value="History">History</option>
+                         <option value="Biography ">Biography </option>
                        <option value="Spirituality">Spirituality</option>
                      </select>
                

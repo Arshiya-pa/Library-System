@@ -1,17 +1,19 @@
 "use client"
 
-import { addUser } from '@/redux/slices/registerSlice';
+import { addUser,getUser } from '@/redux/slices/registerSlice';
 import React from 'react'
-import { useState } from 'react';
-import { useDispatch } from "react-redux";
+import { useState,useEffect } from 'react';
+import { useDispatch,useSelector } from "react-redux";
 import { useRouter } from 'next/navigation';
-import toast, { Toaster } from "react-hot-toast"; 
+import Swal from "sweetalert2";
 
 const RegistrationForm = () => {
 
     const dispatch = useDispatch();
     const router = useRouter();
-    
+
+       const users = useSelector((state) => state.register.register);
+
           const [registerData,setRegisterData ] = useState({
              UserId:"",
              FullName:"",
@@ -21,6 +23,10 @@ const RegistrationForm = () => {
              MembershipPlan:"",
              MembershipFee:"",
           });
+
+           useEffect(() => {
+           dispatch(getUser());
+           }, [dispatch]);
 
           const [errors, setErrors] = useState({});
             
@@ -36,13 +42,23 @@ const RegistrationForm = () => {
              }
            
              if (!registerData.Email.trim()) {
-               newErrors.Email = "Email is required";
-             } else if (
-               !/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(registerData.Email)
-             ) {
-               newErrors.Email = "Invalid Email Address";
-             }
-           
+                newErrors.Email = "Email is required";
+              } else if (
+                !/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(registerData.Email)
+              ) {
+                newErrors.Email = "Invalid Email Address";
+              } else {
+                const emailExists = users.some(
+                  (user) =>
+                    user.Email?.toLowerCase() ===
+                    registerData.Email.toLowerCase()
+                );
+              
+                if (emailExists) {
+                  newErrors.Email = "Email already exists";
+                }
+              }
+                       
              if (!registerData.Phone.trim()) {
                newErrors.Phone = "Phone Number is required";
              } else if (!/^\d{10}$/.test(registerData.Phone)) {
@@ -67,38 +83,86 @@ const RegistrationForm = () => {
              }
            
              setErrors(newErrors);
-           
              return Object.keys(newErrors).length === 0;
             };
 
-
+         /* user submission */
            const handleSubmit = async (e) => {
               e.preventDefault();
               try {
-                 if (!validate()) {
-                  return;
-                 }
+                 if (!validate()) return;
+                 if (errors.Email) return;
+
                 const resultData = await dispatch(addUser(registerData));
                 console.log("result is",resultData)
-                if (resultData.payload.success) {
-                toast.success("New User Added.....")
-                router.push("/userList")
-              }
-            
-              } catch (error) {
+               if (addUser.fulfilled.match(resultData)) {
+                 await Swal.fire({
+                   icon: "success",
+                   title: "User Added!",
+                   text: "New user registered successfully.",
+                   confirmButtonColor: "#01342F",
+                 });
+               
+                 router.push("/userList");
+                } else {
+                 Swal.fire({
+                   icon: "error",
+                   title: "Registration Failed",
+                   text: resultData.error?.message || "Something went wrong!",
+                   confirmButtonColor: "#d33",
+                 });
+                }             
+               } catch (error) {
                  toast.error("Cannot be add new user")
                  console.log("Add New User Error",error.message)
-              }
-           
-           }
-           const handleCancel = () => {
-            setErrors({});
-            setRegisterData({})
-           };
-
-     
+               }
+            }
+            
+            const handleCancel = () => {
+               setErrors({});
+               setRegisterData({
+                 UserId: "",
+                 FullName: "",
+                 Email: "",
+                 Phone: "",
+                 Address: "",
+                 MembershipPlan: "",
+                 MembershipFee: "",
+               });
+             };
+ 
+           /* Email Change function*/
+          const handleEmailChange = (e) => {
+            const email = e.target.value;
+          
+            setRegisterData((prev) => ({
+              ...prev,
+              Email: email,
+            }));
+          
+            if (!email) {
+              setErrors((prev) => ({
+                ...prev,
+                Email: "",
+              }));
+              return;
+            }
+          
+            const emailExists = users.some(
+              (user) =>
+                user.Email?.trim().toLowerCase() ===
+                email.trim().toLowerCase()
+            );
+          
+            setErrors((prev) => ({
+              ...prev,
+              Email: emailExists
+                ? "Email already exists"
+                : "",
+            }));
+          };
+          
      return (
-
      <form onSubmit={handleSubmit}>
        <div className="min-h-screen bg-gray-100 flex justify-center items-center p-6">
          <div className="bg-white w-full max-w-3xl rounded-2xl shadow-lg p-8">
@@ -161,25 +225,19 @@ const RegistrationForm = () => {
               
              {/* Email */}
                <div>
-               <label className="block mb-2 font-medium">Email</label>
-               <input type="text" name="Email" placeholder="Enter Email"
-               className={`w-full border rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-purple-400 mb-3 ${errors.UserId ? "border-red-500" : ""}`}
-                onChange={(e) => {
-                 setRegisterData({
-                   ...registerData,
-                   Email: e.target.value,
-                 });
-               
-                 setErrors((prev) => ({
-                   ...prev,
-                   Email: "",
-                 }));}}
-                 />
-
-               {errors.Email && (<p className="text-red-500 text-sm mt-1">
-               {errors.Email}</p>)}
-
-               </div>
+                <label className="block mb-2 font-medium">Email</label>
+                  <input type="text" name="Email" placeholder="Enter Email"
+                    value={registerData.Email || ""}
+                    onChange={handleEmailChange}
+                    className={`w-full border rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-purple-400 mb-3 ${
+                    errors.Email ? "border-red-500" : "" }`} />
+                
+                   {errors.Email && (
+                    <p className="text-red-500 text-sm mt-1">
+                      {errors.Email}
+                    </p>
+                   )}
+                 </div>
 
                 {/* Phone */}
                <div>
@@ -256,8 +314,8 @@ const RegistrationForm = () => {
               
                       setRegisterData({
                         ...registerData,
-                        MembershipPlan: plan,
-                        MembershipFee: fee,
+                        MembershipPlan:plan,
+                        MembershipFee:fee,
                       });
                     }}
                     className="w-full border rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-purple-400"

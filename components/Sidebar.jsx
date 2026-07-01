@@ -1,115 +1,108 @@
 "use client";
 
-import React, { useState } from "react";
-import { useRouter } from "next/navigation";
-import { logout } from "../redux/slices/authSlice";
-import { useDispatch } from "react-redux";
-import { motion, AnimatePresence } from "framer-motion";
+   import React, { useState } from "react";
+   import { useRouter } from "next/navigation"; 
+   import { motion, AnimatePresence } from "framer-motion"; 
+   import {Home,LayoutDashboard,BookPlus,BookOpen,Users,UserPlus,RotateCcw,History,LogOut,} from "lucide-react"; 
+   
+   const Sidebar = () => { 
+      const router = useRouter(); 
+      const [open, setOpen] = useState(false);
 
-const Sidebar = () => {
+      return (
+       <> 
+     {/* Toggle Button */} 
+     <button onClick={() => setOpen(!open)} 
+     className="fixed top-5 left-5 z-50 bg-black text-white px-4 py-2 rounded-lg"> ☰ </button>
 
-  const router = useRouter();
-  const dispatch = useDispatch();
+     <AnimatePresence>
+       {open && (
+         <> 
+         {/* Overlay */}
+          <motion.div initial={{ opacity: 0 }} 
+          animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+           onClick={() => setOpen(false)} className="fixed inset-0 bg-black/50 z-40"/> 
+           
+           {/* Sidebar */} 
+           <motion.aside initial={{ x: -300 }} 
+           animate={{ x: 0 }} exit={{ x: -300 }} transition={{ duration: 0.3 }} 
+           className="fixed top-0 left-0 w-72 h-screen bg-purple-800 text-white flex flex-col p-6 z-50 shadow-xl"> 
+           {/* Close Button */}
+          <button onClick={() => setOpen(false)} className="self-end text-white mb-4">✕</button>
 
-  const [open, setOpen] = useState(false);
+           {/* Logo */} 
+           <div>
+             <h1 className="text-3xl font-semibold mb-10">📚 LIBRARY<br /> MENU </h1> 
+             {/* Menu */} 
+          <nav className="space-y-3">
+             <button
+              onClick={() => router.push("/dashboard")}
+              className="flex items-center gap-3 w-full p-3 rounded-xl hover:bg-purple-900">
+              <Home size={20} />
+              Home
+             </button>
 
-  const handleLogout = () => {
-    dispatch(logout());
-    router.push("/login");
-  };
+          <button
+            onClick={() => router.push("/add-Book")}
+            className="flex items-center gap-3 w-full p-3 rounded-xl hover:bg-purple-900"
+          >
+            <BookPlus size={20} />
+            Add Book
+          </button>
 
-  return (
-    <>
-    
-      {/* Toggle Button */}
-       <button
-        onClick={() => setOpen(!open)}
-        className="fixed top-5 left-5 z-50 bg-black text-white px-4 py-2 rounded-lg">
-        ☰ </button>
-        
-         <AnimatePresence>
-          {open && (
-           <>
-            {/* Overlay */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setOpen(false)}
-              className="fixed inset-0 bg-black/50 z-40"
-            />
-            {/* Sidebar */}
-            <motion.aside
-              initial={{ x: -300 }}
-              animate={{ x: 0 }}
-              exit={{ x: -300 }}
-              transition={{ duration: 0.3 }}
-              className="fixed top-0 left-0 w-64 min-h-screen bg-black text-white p-5 z-50 shadow-xl">
-                 
-              {/* Close Button */}
-               <button
-                onClick={() => setOpen(false)}
-                className="mb-5 text-amber-600 font-bold"
-               > ✕ 
-               </button>
-                   
-               <h1 className="text-2xl font-bold text-purple-600 mb-10">   
-                <span className="text-6xl">📖</span>
-                <span className="text-xl">LibraryMS</span> </h1>
+          <button
+            onClick={() => router.push("/list-Book")}
+            className="flex items-center gap-3 w-full p-3 rounded-xl hover:bg-purple-900"
+          >
+            <BookOpen size={20} />
+            Books List
+          </button>
 
-                <nav className="space-y-3">
-                 <button
-                  className="w-full text-left p-3 rounded-xl hover:bg-gray-800"
-                  onClick={() => router.push("/dashboard")}>
-                  🏠 Home
-                  </button>
+          <button
+            onClick={() => router.push("/registration")}
+            className="flex items-center gap-3 w-full p-3 rounded-xl hover:bg-purple-900"
+          >
+            <UserPlus size={20} />
+            User Registration
+          </button>
 
-                  <button
-                  className="w-full text-left p-3 rounded-xl  hover:bg-gray-800"
-                  onClick={() => router.push("/add-Book")}>
-                  📝 Add Book
-                 </button>
-             
-                 <button
-                  className="w-full text-left p-3 rounded-xl hover:bg-gray-800"
-                  onClick={() => router.push("/list-Book")}
-                 > 📚 BooksList </button>
-                 
-                 <button className="w-full text-left p-3 rounded-xl hover:bg-gray-800"
-                 onClick={() => router.push("/registration")}>
-                  ✍ User Registration
-                 </button>
-                  
-                  <button className="w-full text-left p-3 rounded-xl hover:bg-gray-800"
-                    onClick={() => router.push("/userList")}>
-                   🙋‍♂️ UserList
-                  </button>
+          <button
+            onClick={() => router.push("/userList")}
+            className="flex items-center gap-3 w-full p-3 rounded-xl hover:bg-purple-900"
+          >
+            <Users size={20} />
+            User List
+          </button>
 
+          <button
+            onClick={() => router.push("/return-Book")}
+            className="flex items-center gap-3 w-full p-3 rounded-xl hover:bg-purple-900"
+          >
+            <RotateCcw size={20} />
+            Book Return
+          </button>
 
-                  <button className="w-full text-left p-3 rounded-xl hover:bg-gray-800"
-                    onClick={() => router.push("/return-Book")}>
-                   ↩️ Book Return
-                  </button>
+           {/* <button
+            onClick={() => router.push("/Fine-List")}
+            className="flex items-center gap-3 w-full p-3 rounded-xl hover:bg-purple-900">
+            <BookPlus size={20} />
+            Fine Collection List
+          </button> */}
 
-                   <button className="w-full text-left p-3 rounded-xl hover:bg-gray-800"
-                    onClick={() => router.push("/return-History")}>
-                   📜 Return History
-                  </button>
-
-                
-                
-                 <button
-                  className="w-full text-left p-3 rounded-xl hover:bg-red-900 text-red-500"
-                  onClick={handleLogout}>
-                  ➜ Logout
-                  </button>
-                 </nav>
-            </motion.aside>
-          </>
-        )}
-      </AnimatePresence>
-    </>
-  );
-};
-
-export default Sidebar;
+          <button
+            onClick={() => router.push("/return-History")}
+            className="flex items-center gap-3 w-full p-3 rounded-xl  hover:bg-purple-900"
+          >
+            <History size={20} />
+            Return History
+          </button>
+        </nav>
+       </div>
+    </motion.aside>
+   </> 
+  )} 
+  </AnimatePresence>
+  </> 
+  ); 
+  }; 
+  export default Sidebar;

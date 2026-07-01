@@ -9,7 +9,8 @@ import { useRouter } from "next/navigation";
 import Swal from "sweetalert2";
 
 const ReturnBook = () => {
-  const [searchId, setSearchId] = useState("");
+
+  const [searchId, setSearchId] = useState();
   const [fine, setFine] = useState(0);
   const [selectedUserId, setSelectedUserId] = useState(null);
 
@@ -20,76 +21,95 @@ const ReturnBook = () => {
    const dispatch = useDispatch();
    const router = useRouter();
 
-    const borrowbook = useSelector(
-    (state) => state.borrowbook.borrowbook || []);
-   
-    const books = useSelector((state) => state.book.books || []);
+    const borrowbook = useSelector((state) => state.borrowbook.borrowbook || []);
+      const books = useSelector((state) => state.book.books || []);
 
-   useEffect(() => {
-     dispatch(getBorrow());
-      dispatch(getBooks());
-   }, [dispatch]);
+          useEffect(() => {
+           dispatch(getBorrow());
+            dispatch(getBooks());
+          }, [dispatch]);
 
-   const filteredData = selectedUserId
-    ? borrowbook.filter(
+
+         // EDIT CLICK
+       const handleEdit = (item) => {
+          setEditId(item._id);
+        
+          setEditData({
+            ...item,
+            PreviousReturnedCount: item.ReturnBookCount || 0,
+            PreviousFine: item.Fine || 0,
+            ReturnBookCount: "",
+          });
+        };
+
+
+        const handleChange = (e) => {
+           const { name, value } = e.target;
+         
+           setEditData({
+             ...editData,
+             [name]: value,
+           });
+         
+           if (name === "ReturnBookCount") {
+             const today = new Date();
+             const dueDate = new Date(editData.BookReturnDate);
+         
+             dueDate.setHours(0, 0, 0, 0);
+             today.setHours(0, 0, 0, 0);
+         
+             const diffTime = today.getTime() - dueDate.getTime();
+             const diffDays = diffTime / (1000 * 60 * 60 * 24);
+         
+             const finePerDay = 5;
+         
+             const calculatedFine =
+               diffDays > 0
+                 ? diffDays * finePerDay * Number(value)
+                 : 0;
+         
+             setFine(calculatedFine);
+           }
+         };
+
+
+     const filteredData = selectedUserId
+       ? borrowbook.filter(
         (item) =>
           String(item.UserId).trim() ===
           String(selectedUserId).trim()  && item.Status === "Active"
       )
     : [];
 
-      // EDIT CLICK
-        const handleEdit = (item) => {
-          
-           setEditId(item._id);
-           setEditData({
-             ...item,
-              Status: "Inactive",
-            
-           });
-           const today = new Date();
-           const dueDate = new Date(item.BookReturnDate);
-           
-           console.log("BookReturnDate:", item.BookReturnDate);
-           console.log("Due Date:", dueDate);
-         
-           if (isNaN(dueDate.getTime())) {
-             console.log("Invalid Date");
-             setFine(0);
-             return;
-           }
-         
-           dueDate.setHours(0, 0, 0, 0);
-           today.setHours(0, 0, 0, 0);
-         
-           const diffTime = today.getTime() - dueDate.getTime();
-           const diffDays = diffTime / (1000 * 60 * 60 * 24);
-         
-           console.log("Diff Days:", diffDays);
-         
-           const finePerDay = 5;
-         
-           const calculatedFine =
-              diffDays > 0
-              ? diffDays * finePerDay * item.BookCount
-              : 0;
-              setFine(calculatedFine);
-            };         
-
-         
+   
+      
        // SAVE / RETURN UPDATE
         const handleSave = async () => {
-            console.log("EDIT DATA:", editData);
-          
-             await dispatch(updateBorrow({ 
-             id: editId,
-             BookReturnDate: editData.BookReturnDate,
-             ActualBookReturnDate:new Date(),
-             Status:editData.Status,
-             Fine:fine
-             })
-           );
-          
+             console.log("EDIT DATA:", editData);
+              const oldReturned = Number(editData.PreviousReturnedCount || 0);
+               const currentReturned = Number(editData.ReturnBookCount || 0);
+               const oldFine = Number(editData.PreviousFine || 0);
+               const totalFine = oldFine + Number(fine);
+               const totalReturned = oldReturned + currentReturned;
+                 const pendingCount =
+                   Number(editData.BookCount) - totalReturned;
+               
+                 const Status =
+                   pendingCount <= 0
+                   ? "Inactive"
+                   : "Active";
+                                          
+                 await dispatch(updateBorrow({
+                 id: editId,
+                 BookReturnDate: editData.BookReturnDate,
+                 ActualBookReturnDate: new Date(),
+                 BookCount: editData.BookCount,
+                 ReturnBookCount: totalReturned,
+                 Status,
+                 Fine: totalFine,
+               })
+             );
+            
            // Find the actual book
            const book = books.find(
            (b) => String(b.BookTitle) === String(editData.BookTitle)
@@ -102,9 +122,9 @@ const ReturnBook = () => {
            console.log("Book Found:", book);
 
     
-           const updatedQuantity = Number(book.Quantity) + Number(editData.BookCount);
+           const updatedQuantity = Number(book.Quantity) + Number(editData.ReturnBookCount);
            let status = updatedQuantity > 0 ? "Available" : "Borrowed";
-
+         
             console.log("Updated Quantity:", updatedQuantity);
             console.log("Status:", status);
         
@@ -149,17 +169,26 @@ const ReturnBook = () => {
                    showCancelButton: true,
                    confirmButtonText: "Yes, Save",
                    }).then(async (result) => {
-                   if (result.isConfirmed) {
-                   await handleSave();
+                     if (!result.isConfirmed) return;
+
+                    // If fine exists, go to Fine Collection page
+                      if (fine > 0) {
+                       router.push(`/fineCollection?borrowId=${editData._id}&returnCount=${editData.ReturnBookCount}`);
+                        return;
+                      }
                   
-                   Swal.fire({
-                     icon: "success",
-                     title: "Returned!",
-                     text: "Book has been returned successfully.",
-                   });
-                 }
-               });
-            };
+                      // No fine, save directly
+                      await handleSave();
+                  
+                       Swal.fire({
+                        icon: "success",
+                        title: "Returned!",
+                        text: "Book has been returned successfully.",
+                       }).then(() => {
+                        router.push("/dashboard"); 
+                      });
+                    });
+                  };
 
    return (
     <div className="p-4">
@@ -173,7 +202,7 @@ const ReturnBook = () => {
       <div className="flex items-center justify-center mb-4 gap-3">
         <input
           type="text"
-          value={searchId}
+          value={searchId || ""}
           onChange={(e) => setSearchId(e.target.value)}
           placeholder="Enter User ID..."
           className="w-1/3 border rounded-lg px-4 py-2"/>
@@ -196,16 +225,18 @@ const ReturnBook = () => {
                   <thead>
                       <tr className="border-b text-center text-gray-600">
                           <th className="py-3">Book Title</th>
-                          <th>Book Count</th>
+                          <th>BorrowBook Count</th>
+                          <th>ReturnBook Count</th>
+                          <th>PendingBook Count</th>
                           <th>Issue Date</th>
                           <th>Return Date</th>
-                          <th> Fine</th>
+                          <th>Fine</th>
                           <th>Return Status </th>
                           <th>Action</th>
                       </tr>
               </thead>
 
-             <tbody className="text-center">
+               <tbody className="text-center">
                  {filteredData.length > 0 ? (
                    filteredData.map((item) => (
                     <tr key={item?._id} className="border-b hover:bg-gray-50">
@@ -213,8 +244,40 @@ const ReturnBook = () => {
                     {/* Title */}
                     <td className="font-medium">{item?.BookTitle}</td>
 
-                    {/* BookCount */}
-                    <td>{item?.BookCount}</td>
+                      {/* BookCount */}
+                     <td className="font-medium">{item?.BookCount}</td>
+
+                    {/* ReturnBookCount */}
+                     <td>
+                      {editId === item._id ? (
+                        <input
+                          type="number"
+                          name="ReturnBookCount"
+                          value={editData.ReturnBookCount || ""}
+                          onChange={handleChange}
+                          min="0"
+                          max={
+                            Number(item.BookCount) -
+                            Number(item.ReturnBookCount || 0)
+                          }
+                          className="border p-2 rounded w-24"
+                        />
+                      ) : (
+                        item.ReturnBookCount || 0
+                      )}
+                    </td>
+                    
+                   {/* PendingCount */}
+                 <td>
+                    {editId === item._id
+                      ? Number(editData.BookCount) -
+                        (
+                          Number(editData.PreviousReturnedCount || 0) +
+                          Number(editData.ReturnBookCount || 0)
+                        )
+                      : Number(item.BookCount) -
+                        Number(item.ReturnBookCount || 0)}
+                  </td>
 
                     {/* IssueDate */}
                     {/* <td>{item?.BookIssueDate}</td> */}
@@ -230,15 +293,28 @@ const ReturnBook = () => {
                    </td>
 
                      {/* Status Activation */}
-                    <td>
-                       {editId === item._id
-                        ? "🔴 Inactive"
-                        : item.Status === "Active"
+                                   
+                   <td>
+                    {editId === item._id
+                      ? (
+                          Number(editData.BookCount) -
+                          (
+                            Number(editData.PreviousReturnedCount || 0) +
+                            Number(editData.ReturnBookCount || 0)
+                          )
+                        ) > 0
+                        ? "🟢 Active"
+                        : "🔴 Inactive"
+                      : (
+                          Number(item.BookCount) -
+                          Number(item.ReturnBookCount || 0)
+                        ) > 0
                         ? "🟢 Active"
                         : "🔴 Inactive"}
-                    </td>
-
-                {/* ACTION */}
+                  </td>
+                                  
+ 
+                 {/* ACTION */}
                 <td>
                   {editId === item._id ? (
                     <div className="flex gap-2 justify-center">

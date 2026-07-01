@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { useDispatch } from "react-redux";
 import { loginUser } from "../redux/slices/authSlice"
 import { useRouter } from "next/navigation";
-import toast, { Toaster } from "react-hot-toast"; //npm install react-hot-toast
+import Swal from "sweetalert2";
 
 const Login = () => {
 
@@ -37,25 +37,37 @@ const Login = () => {
             setErrors(newErrors);  
             return Object.keys(newErrors).length === 0;
            };
-        
-        const handleSubmit = async (e) => {
-           e.preventDefault();
-           try {
-           
-              if (!validate()) {
-                  return;
-                }
-          const result = await dispatch(
-          loginUser(formData));
-          
-          if (result.payload.success) {
-          toast.success("Login Completed.....")
-          router.push("/dashboard");}
-          } catch (error) {
-              toast.error("Login Incomplete")
-              console.log("Login Error",error.message)
+        /*Login submission*/
+          const handleSubmit = async (e) => {
+            e.preventDefault();
+            try {
+              if (!validate()) { return; }
+              const result = await dispatch(loginUser(formData));
+
+              if (loginUser.fulfilled.match(result)) {
+               Swal.fire({
+                 icon: "success",
+                 title: "Login Successful",
+                 text: "Welcome Back!",
+                 confirmButtonColor: "#01342F",
+               }).then(() => {
+                 router.push("/dashboard");
+               });
+             } else {
+               Swal.fire({
+                 icon: "error",
+                 title: "Login Failed",
+                 text:
+                   result.payload?.message ||
+                   result.payload?.error ||
+                   "Invalid Email or Password",
+                 confirmButtonColor: "#d33",
+               });
+             }
+            }catch (error){
+              console.log("Error in Login",error)
             }
-          };
+        };
       
   return (
    <form onSubmit={handleSubmit}>

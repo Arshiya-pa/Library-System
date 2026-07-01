@@ -36,7 +36,7 @@ export const addUser = createAsyncThunk( "register/addUser",
      loading: false,
   },
 
-       reducers: {setSelectedUser : (state,action) =>{
+      reducers: {setSelectedUser : (state,action) =>{
          state.selectedUser = action.payload;
        },
        clearSelectedUser:(state) =>{

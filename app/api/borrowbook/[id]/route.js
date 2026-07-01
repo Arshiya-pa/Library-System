@@ -8,16 +8,12 @@ export async function PUT(req, { params }) {
            const { id } = await params;
            const body = await req.json();
 
-          console.log("Book ID:", id);
-          console.log("returnDate:", body.BookReturnDate);
-           console.log("Actual returnDate:", body.ActualBookReturnDate);
-          console.log("Status is",body.Status)
-          console.log("Fine is",body.Fine)
-        
          const updateBorrow = await Borrows.findByIdAndUpdate(
          id,
           {
             BookReturnDate:body.BookReturnDate,
+            BookCount:body.BookCount,
+            ReturnBookCount:body.ReturnBookCount,
             ActualBookReturnDate:body.ActualBookReturnDate,
             Status:body.Status,
             Fine:body.Fine
